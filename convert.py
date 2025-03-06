@@ -1,5 +1,3 @@
-# TODO : rotate image by 180deg from input/ -> images/
-
 '''
 Adapted from the original 3D Gaussian Splatting source code:
 https://github.com/graphdeco-inria/gaussian-splatting/convert.py
@@ -35,6 +33,9 @@ source/
 import os
 from argparse import ArgumentParser
 import shutil
+from glob import glob
+from tqdm import tqdm
+from PIL import Image
 
 # Assuming following structure is present
 # source/
@@ -69,6 +70,14 @@ def parse_args():
 def main():
     args = parse_args()
 
+    images_path = os.path.join(args.source_path, 'images')
+    if not(os.path.exists(images_path)) : os.mkdir(images_path)
+
+    print('preparing images (./input/*.jpg -> ./images/*.jpg)')
+    for fn in tqdm(glob(os.path.join(args.source_path, 'input/*.jpg'))) : 
+        img = Image.open(fn).transpose(Image.Transpose.ROTATE_180)
+        img.save(fn.replace('input', 'images'))
+    
     if args.debug:
         shutil.rmtree(f'./{args.source_path}/sparse')
         os.remove(f'./{args.source_path}/database.db')
