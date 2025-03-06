@@ -50,6 +50,10 @@ The `points.txt` can be left empty. For more information on the camera-meta data
 
 ## Run
 
-```
+To run the preparatory step for 3DGS with manual camera positions instead of the regular SfM procedure from the original 3DGS repo: `./gaussian-splatting/convert.py` run the `convert.py` of this repo:
 
 ```
+python convert.py -s experiments/2025/0603_blender-example
+```
+
+This takes the input images and generates the folder `/sparse/0/*.bin` in which files will be stored that are used in the 3DGS process.
