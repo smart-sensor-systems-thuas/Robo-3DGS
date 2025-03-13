@@ -34,8 +34,8 @@ import os
 import argparse
 import shutil
 from glob import glob
-from tqdm import tqdm
 from PIL import Image
+from tqdm import tqdm
 
 # Assuming following structure is present
 # experiment/
@@ -73,19 +73,8 @@ def main() -> None :
 
     images_path = os.path.join(path, 'images')
     if not(os.path.exists(images_path)) : os.mkdir(images_path)
-
-    if (
-        os.path.exists(os.path.join(path, 'sparse')) or
-        os.path.exists(os.path.join(path, 'images')) or
-        os.path.exists(os.path.join(path, 'distorted')) or
-        os.path.exists(os.path.join(path, 'database.db'))
-    ) : 
-        print('[Robo-3DGS] clean the experiment folder to only contain: ./experiment/config/ and ./experiment/input/')
-        print('[Robo-3DGS] or only run the 3DGS: python main.py --skip-preprocessing')
-        exit()
-
-    print('[Robo-3DGS] preparing images (./input/*.jpg -> ./images/*.jpg)')
-    for fn in tqdm(glob(os.path.join(args.source_path, 'input/*.jpg'))) : 
+    print('[Robo-3DGS] preparing images (rotating by 180deg) (./input/*.jpg -> ./images/*.jpg)')
+    for fn in tqdm(glob(os.path.join(path, 'input/*.jpg'))) : 
         img = Image.open(fn).transpose(Image.Transpose.ROTATE_180)
         img.save(fn.replace('input', 'images'))
     
@@ -110,8 +99,8 @@ def main() -> None :
         'colmap point_triangulator'
         f' --database_path {os.path.join(path, "database.db")}' 
         f' --image_path {os.path.join(path, "images")}' 
-        f' --image_path {os.path.join(path, "config")}' 
-        f' --input_path {os.path.join(path, "sparse/0")}'
+        f' --input_path {os.path.join(path, "config")}' 
+        f' --output_path {os.path.join(path, "sparse/0")}'
     ) != 0 : exit(0)
 
 if (__name__ == '__main__') : main()
