@@ -1,1 +1,13 @@
 notepad.ipynb
+experiments/*/*/distorted
+experiments/*/*/images
+experiments/*/*/input
+experiments/*/*/sparse
+experiments/*/*/stereo
+experiments/*/*/cameras.json
+experiments/*/*/cfg_args
+experiments/*/*/database.db
+experiments/*/*/input.ply
+experiments/*/*/run-colmap-geometric.sh
+experiments/*/*/run-colmap-photometric.sh
+experiments/*/*/point_cloud

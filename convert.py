@@ -31,14 +31,14 @@ source/
 '''
 
 import os
-from argparse import ArgumentParser
+import argparse
 import shutil
 from glob import glob
 from tqdm import tqdm
 from PIL import Image
 
 # Assuming following structure is present
-# source/
+# experiment/
 #   images/
 #       04d.jpg
 #   manual/
@@ -50,7 +50,7 @@ from PIL import Image
 # In the original `convert.py` images are also undistorted and mapper is used
 # However, if camera positions are extrinsics are known, triangulation can be
 # used to obtain a sparse point cloud.
-# source/
+# experiment/
 #   images/
 #       04d.jpg
 #   sparse/
@@ -60,36 +60,40 @@ from PIL import Image
 #           points3D.bin
 
 
-def parse_args():
-    parser = ArgumentParser('COLMAP converter with known camera positions')
+def parse_args() -> argparse.Namespace :
+    parser = argparse.ArgumentParser('COLMAP converter with known camera poses')
     parser.add_argument('--source_path', '-s', required=True, type=str)
     parser.add_argument('--camera', default='OPENCV', type=str)
     parser.add_argument('--debug', action='store_true')
     return parser.parse_args()
 
-def main():
+def main() -> None :
     args = parse_args()
+    path = os.path.abspath(args.source_path)
 
-    images_path = os.path.join(args.source_path, 'images')
+    images_path = os.path.join(path, 'images')
     if not(os.path.exists(images_path)) : os.mkdir(images_path)
 
-    print('preparing images (./input/*.jpg -> ./images/*.jpg)')
+    if (
+        os.path.exists(os.path.join(path, 'sparse')) or
+        os.path.exists(os.path.join(path, 'images')) or
+        os.path.exists(os.path.join(path, 'distorted')) or
+        os.path.exists(os.path.join(path, 'database.db'))
+    ) : 
+        print('[Robo-3DGS] clean the experiment folder to only contain: ./experiment/config/ and ./experiment/input/')
+        print('[Robo-3DGS] or only run the 3DGS: python main.py --skip-preprocessing')
+        exit()
+
+    print('[Robo-3DGS] preparing images (./input/*.jpg -> ./images/*.jpg)')
     for fn in tqdm(glob(os.path.join(args.source_path, 'input/*.jpg'))) : 
         img = Image.open(fn).transpose(Image.Transpose.ROTATE_180)
         img.save(fn.replace('input', 'images'))
     
-    if args.debug:
-        shutil.rmtree(f'./{args.source_path}/sparse')
-        os.remove(f'./{args.source_path}/database.db')
-        # os.system('python cameras.py')
-
-    os.makedirs(f'./{args.source_path}/sparse/0', exist_ok=True)
-
     # Feature extraction
     if os.system(
         'colmap feature_extractor'
-        f' --database_path {args.source_path}/database.db' 
-        f' --image_path {args.source_path}/images' 
+        f' --database_path {os.path.join(path, "database.db")}' 
+        f' --image_path {os.path.join(path, "images")}' 
         ' --ImageReader.camera_model SIMPLE_PINHOLE'
         ' --SiftExtraction.use_gpu 1'
     ) != 0 : exit(0)
@@ -97,17 +101,17 @@ def main():
     # Feature matching
     if os.system(
         'colmap exhaustive_matcher'
-        f' --database_path {args.source_path}/database.db' 
+        f' --database_path {os.path.join(path, "database.db")}' 
         ' --SiftMatching.use_gpu 1'
     ) != 0 : exit(0)
 
     # Triangulation (instead of mapping in the regular convert since we know the camera parameters)
     if os.system(
         'colmap point_triangulator'
-        f' --database_path {args.source_path}/database.db' 
-        f' --image_path {args.source_path}/images' 
-        f' --input_path {args.source_path}/config'
-        f' --output_path {args.source_path}/sparse/0'
+        f' --database_path {os.path.join(path, "database.db")}' 
+        f' --image_path {os.path.join(path, "images")}' 
+        f' --image_path {os.path.join(path, "config")}' 
+        f' --input_path {os.path.join(path, "sparse/0")}'
     ) != 0 : exit(0)
 
 if (__name__ == '__main__') : main()
