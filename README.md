@@ -1,7 +1,3 @@
-```
-git submodule update --init --recursive
-```
-
 # Robo-3DGS
 3D Gaussian Splatting utilizing known camera poses through robotic control and localization.
 
@@ -33,7 +29,7 @@ experiments/exp-id/
     - `images.txt` image with correpsonding camera pose and used camera
     - `points3D.txt` starting point cloud
 
-Typically you would use only one camera, however setups with multiple different cameras are supported through `cameras.txt`.
+Typically you would use only one camera, however setups with multiple different cameras are supported through `cameras.txt`:
 
 ```
 #   CAMERA_ID, MODEL, WIDTH, HEIGHT, PARAMS[]
@@ -50,14 +46,19 @@ The `images.txt` contain for every image the pose and camera/file ids in the fol
 In here `Q_` denotes a Quarternion component, and `T_` denotes a translation.
 
 The `points.txt` can be left empty. For more information on the camera-meta data check the
-[COLMAP documentation](https://colmap.github.io/format.html). 
+[COLMAP documentation](https://colmap.github.io/format.html).
 
 ## Run
 
-To run the preparatory step for 3DGS with manual camera positions instead of the regular SfM procedure from the original 3DGS repo: `./gaussian-splatting/convert.py` run the `convert.py` of this repo:
+To run the preparatory step for 3DGS with manual camera positions instead of the regular SfM procedure from the original 3DGS repo: `./gaussian-splatting/convert.py` run the `main.py` of this repo:
 
 ```
-python convert.py -s experiments/2025/0603_blender-example
+python main.py -s experiments/2025/0603_blender-example
 ```
 
 This takes the input images and generates the folder `/sparse/0/*.bin` in which files will be stored that are used in the 3DGS process.
+The result of the 3DGS procedure are also put in the same folder.
+The result can be found in the `point_cloud` folder.
+
+Besides `-s `, `main.py` has two additional arguments. One to fully skip the preprocessing step `--skip-preprocessing` and 
+`--use_original` to use the original `convert.py`. Note the latter then fully ignores the known camera poses.
