@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace :
 def main() -> None :
     args = parse_args()
     path = os.path.abspath(args.source_path)
-
+    
     images_path = os.path.join(path, 'images')
     if not(os.path.exists(images_path)) : os.mkdir(images_path)
     print('[Robo-3DGS] preparing images (rotating by 180deg) (./input/*.jpg -> ./images/*.jpg)')
@@ -78,6 +78,8 @@ def main() -> None :
         img = Image.open(fn).transpose(Image.Transpose.ROTATE_180)
         img.save(fn.replace('input', 'images'))
     
+    os.makedirs(os.path.join(path, 'sparse/0'), exist_ok=True)
+
     # Feature extraction
     if os.system(
         'colmap feature_extractor'

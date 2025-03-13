@@ -47,6 +47,9 @@ experiment/
 import os
 import subprocess
 import argparse
+from glob import glob
+from PIL import Image
+from tqdm import tqdm
 
 def parse_args() -> argparse.Namespace :
     parser = argparse.ArgumentParser('COLMAP converter with known camera poses')
@@ -71,7 +74,26 @@ def main() -> None :
     path = os.path.abspath(args.source_path)
 
     if not(args.skip_preprocessing) :
+        if (
+            os.path.exists(os.path.join(path, 'sparse')) or
+            os.path.exists(os.path.join(path, 'images')) or
+            os.path.exists(os.path.join(path, 'distorted')) or
+            os.path.exists(os.path.join(path, 'database.db'))
+        ) : 
+            print('[Robo-3DGS] clean the experiment folder to only contain: ./experiment/config/ and ./experiment/input/')
+            print('[Robo-3DGS] issues might occur with overwriting the COLMAP SfM procedure')
+            print('[Robo-3DGS] or only run the 3DGS: python main.py --skip-preprocessing')
+            exit()
+
         if (args.use_original) :
+            # TODO just copy the input folder to images
+            images_path = os.path.join(path, 'images')
+            if not(os.path.exists(images_path)) : os.mkdir(images_path)
+            print('[Robo-3DGS] preparing images (rotating by 180deg) (./input/*.jpg -> ./images/*.jpg)')
+            for fn in tqdm(glob(os.path.join(path, 'input/*.jpg'))) : 
+                img = Image.open(fn).transpose(Image.Transpose.ROTATE_180)
+                img.save(fn.replace('input', 'images'))
+
             print('[Robo-3DGS] ignoring manual camera poses! using the original COLMAP procedure to estimate camera poses and generate sparse point cloud')
             subprocess.run([
                 'python', './gaussian_splatting/convert.py',
